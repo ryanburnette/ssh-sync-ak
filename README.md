@@ -50,3 +50,7 @@ Two people, two blocks:
 ... | sh -s -- https://github.com/alice.keys Alice
 ... | sh -s -- https://github.com/bob.keys Bob
 ```
+
+## License
+
+MIT. See [LICENSE](LICENSE).
