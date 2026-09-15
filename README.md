@@ -47,8 +47,8 @@ sh ssh-sync-ak.sh -n -f testdata/unmanaged.authorized_keys https://github.com/ry
 Two people, two blocks:
 
 ```
-... | sh -s -- https://github.com/alice.keys Alice
-... | sh -s -- https://github.com/bob.keys Bob
+... | sh -s -- https://github.com/layne.keys Layne
+... | sh -s -- https://github.com/mike.keys Mike
 ```
 
 ## License
