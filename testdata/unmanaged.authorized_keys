@@ -1,2 +1,2 @@
-# machine-local key; ssh-ak-config must leave this line alone
+# machine-local key; ssh-sync-ak must leave this line alone
 ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIUnrelatedKey000000000000000000000000000000 host-local
