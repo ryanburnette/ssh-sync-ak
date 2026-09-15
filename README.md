@@ -18,9 +18,9 @@ curl -fsSL https://raw.githubusercontent.com/ryanburnette/ssh-sync-ak/main/ssh-s
 Re-running with the same name replaces that block so key rotation works. Other blocks and unmanaged keys stay put.
 
 ```
-# BEGIN ssh-sync-ak Ryan
+# BEGIN ssh-sync-ak ryanburnette
 ssh-ed25519 AAAA...
-# END ssh-sync-ak Ryan
+# END ssh-sync-ak ryanburnette
 ```
 
 If the URL has no valid keys, the script exits without changing the file.
