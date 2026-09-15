@@ -1,0 +1,6 @@
+LOCAL.md
+*.tmp
+*.tmp.d
+tmp
+agent-session.tmp.d
+.DS_Store
