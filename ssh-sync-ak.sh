@@ -16,7 +16,7 @@ g_tmp_keys=
 g_dry_run=0
 
 fn_usage() {
-   printf 'usage: ssh-ak-config.sh [-n] [-f file] <keys-url> [name]\n' >&2
+   printf 'usage: ssh-sync-ak.sh [-n] [-f file] <keys-url> [name]\n' >&2
    printf '\n' >&2
    printf 'Sync public keys into a named block in authorized_keys.\n' >&2
    printf '\n' >&2
@@ -24,7 +24,7 @@ fn_usage() {
    printf '  -n, --dry-run     print the change and do not write\n' >&2
    printf '\n' >&2
    printf 'Example:\n' >&2
-   printf '  curl -fsSL https://raw.githubusercontent.com/ryanburnette/ssh-ak-config/main/ssh-ak-config.sh | sh -s -- https://github.com/user.keys Name\n' >&2
+   printf '  curl -fsSL https://raw.githubusercontent.com/ryanburnette/ssh-sync-ak/main/ssh-sync-ak.sh | sh -s -- https://github.com/user.keys Name\n' >&2
    printf '\n' >&2
    printf 'Arguments after sh -s -- are required so the script sees them.\n' >&2
    printf 'Default name is "default". SSH_AK_FILE is used if -f is omitted.\n' >&2
@@ -37,7 +37,7 @@ fn_http_get() {
    elif command -v wget > /dev/null 2>&1; then
       wget -qO- "$a_url"
    else
-      printf 'ssh-ak-config: need curl or wget to fetch %s\n' "$a_url" >&2
+      printf 'ssh-sync-ak: need curl or wget to fetch %s\n' "$a_url" >&2
       exit 1
    fi
 }
@@ -101,7 +101,7 @@ fn_collect_keys() {
       esac
       b_id=$(fn_key_id "$b_line")
       if test -z "$b_id"; then
-         printf 'ssh-ak-config: skipping invalid line\n' >&2
+         printf 'ssh-sync-ak: skipping invalid line\n' >&2
          continue
       fi
       if fn_ids_contain "$b_id"; then
@@ -118,7 +118,7 @@ ${b_line}"
       fi
    done < "$g_tmp_keys"
    if test -z "$g_key_body"; then
-      printf 'ssh-ak-config: no public keys in %s\n' "$g_keys_src" >&2
+      printf 'ssh-sync-ak: no public keys in %s\n' "$g_keys_src" >&2
       exit 1
    fi
 }
@@ -167,7 +167,7 @@ fn_parse_args() {
             ;;
          -f | --file)
             if test $# -lt 2; then
-               printf 'ssh-ak-config: %s needs a path\n' "$1" >&2
+               printf 'ssh-sync-ak: %s needs a path\n' "$1" >&2
                exit 1
             fi
             g_auth_file=$2
@@ -182,7 +182,7 @@ fn_parse_args() {
             break
             ;;
          -*)
-            printf 'ssh-ak-config: unknown option %s\n' "$1" >&2
+            printf 'ssh-sync-ak: unknown option %s\n' "$1" >&2
             fn_usage
             exit 1
             ;;
@@ -217,13 +217,13 @@ fn_main() {
 
    case $g_name in
       *[!A-Za-z0-9._-]* | '')
-         printf 'ssh-ak-config: name must be A-Za-z0-9._- (got %s)\n' "$g_name" >&2
+         printf 'ssh-sync-ak: name must be A-Za-z0-9._- (got %s)\n' "$g_name" >&2
          exit 1
          ;;
    esac
 
-   g_begin="# BEGIN ssh-ak-config ${g_name}"
-   g_end="# END ssh-ak-config ${g_name}"
+   g_begin="# BEGIN ssh-sync-ak ${g_name}"
+   g_end="# END ssh-sync-ak ${g_name}"
 
    g_ssh_dir=$(dirname "$g_auth_file")
    mkdir -p "$g_ssh_dir"
@@ -244,13 +244,13 @@ fn_main() {
       if test "$g_dry_run" -eq 0; then
          chmod 600 "$g_auth_file"
       fi
-      printf 'ssh-ak-config: already up to date (%s in %s)\n' "$g_name" "$g_auth_file" >&2
+      printf 'ssh-sync-ak: already up to date (%s in %s)\n' "$g_name" "$g_auth_file" >&2
       rm -f "$g_tmp_auth"
       return 0
    fi
 
    if test "$g_dry_run" -eq 1; then
-      printf 'ssh-ak-config: dry run; would write block %s to %s\n' "$g_name" "$g_auth_file" >&2
+      printf 'ssh-sync-ak: dry run; would write block %s to %s\n' "$g_name" "$g_auth_file" >&2
       fn_show_diff
       rm -f "$g_tmp_auth"
       return 0
@@ -258,7 +258,7 @@ fn_main() {
 
    mv "$g_tmp_auth" "$g_auth_file"
    chmod 600 "$g_auth_file"
-   printf 'ssh-ak-config: wrote block %s to %s\n' "$g_name" "$g_auth_file" >&2
+   printf 'ssh-sync-ak: wrote block %s to %s\n' "$g_name" "$g_auth_file" >&2
 }
 
 fn_main "$@"

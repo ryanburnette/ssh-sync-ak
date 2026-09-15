@@ -1,9 +1,9 @@
-# ssh-ak-config
+# ssh-sync-ak
 
 Sync public keys from a URL into a named block in `authorized_keys`.
 
 ```
-curl -fsSL https://raw.githubusercontent.com/ryanburnette/ssh-ak-config/main/ssh-ak-config.sh | sh -s -- https://github.com/user.keys Name
+curl -fsSL https://raw.githubusercontent.com/ryanburnette/ssh-sync-ak/main/ssh-sync-ak.sh | sh -s -- https://github.com/user.keys Name
 ```
 
 `sh -s --` is required. Arguments after `--` become the script's arguments. Without `-s`, the pipe has no arguments.
@@ -18,9 +18,9 @@ curl -fsSL https://raw.githubusercontent.com/ryanburnette/ssh-ak-config/main/ssh
 Re-running with the same name replaces that block so key rotation works. Other blocks and unmanaged keys stay put.
 
 ```
-# BEGIN ssh-ak-config Ryan
+# BEGIN ssh-sync-ak Ryan
 ssh-ed25519 AAAA...
-# END ssh-ak-config Ryan
+# END ssh-sync-ak Ryan
 ```
 
 If the URL has no valid keys, the script exits without changing the file.
@@ -28,7 +28,7 @@ If the URL has no valid keys, the script exits without changing the file.
 ## Usage
 
 ```
-ssh-ak-config.sh [-n] [-f file] <keys-url> [name]
+ssh-sync-ak.sh [-n] [-f file] <keys-url> [name]
 ```
 
 | Option | Meaning |
@@ -41,7 +41,7 @@ ssh-ak-config.sh [-n] [-f file] <keys-url> [name]
 Dry run against a test file:
 
 ```
-sh ssh-ak-config.sh -n -f testdata/unmanaged.authorized_keys https://github.com/ryanburnette.keys Ryan
+sh ssh-sync-ak.sh -n -f testdata/unmanaged.authorized_keys https://github.com/ryanburnette.keys Ryan
 ```
 
 Two people, two blocks:

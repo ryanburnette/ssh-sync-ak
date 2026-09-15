@@ -1,11 +1,11 @@
 #!/bin/sh
 set -eu
 
-# Exercise ssh-ak-config.sh against https://github.com/ryanburnette.keys
+# Exercise ssh-sync-ak.sh against https://github.com/ryanburnette.keys
 # using copies of testdata files under tmp/.
 
 g_root=$(CDPATH='' cd -- "$(dirname "$0")" && pwd)
-g_script="${g_root}/ssh-ak-config.sh"
+g_script="${g_root}/ssh-sync-ak.sh"
 g_url='https://github.com/ryanburnette.keys'
 g_tmp="${g_root}/tmp"
 

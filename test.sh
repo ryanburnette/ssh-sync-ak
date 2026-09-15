@@ -2,7 +2,7 @@
 set -eu
 
 g_root=$(CDPATH='' cd -- "$(dirname "$0")" && pwd)
-g_script="${g_root}/ssh-ak-config.sh"
+g_script="${g_root}/ssh-sync-ak.sh"
 g_work=$(mktemp -d)
 trap 'rm -rf "$g_work"' EXIT
 
@@ -32,10 +32,10 @@ k1_opt='from="10.0.0.1" ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIFakeKey111111111111
 # Fresh file: creates the named block.
 printf '%s\n' "$k1" "$k2" > "$g_keys"
 fn_run "$g_keys" Ryan
-if grep -F -x -e "# BEGIN ssh-ak-config Ryan" "$g_auth" > /dev/null &&
+if grep -F -x -e "# BEGIN ssh-sync-ak Ryan" "$g_auth" > /dev/null &&
    grep -F -x -e "$k1" "$g_auth" > /dev/null &&
    grep -F -x -e "$k2" "$g_auth" > /dev/null &&
-   grep -F -x -e "# END ssh-ak-config Ryan" "$g_auth" > /dev/null; then
+   grep -F -x -e "# END ssh-sync-ak Ryan" "$g_auth" > /dev/null; then
    fn_pass 'creates named block'
 else
    fn_fail 'creates named block'
@@ -89,8 +89,8 @@ printf '%s\n' "$k1" > "$g_keys"
 fn_run "$g_keys" Alice
 printf '%s\n' "$k2" > "$g_keys"
 fn_run "$g_keys" Bob
-if grep -F -x -e "# BEGIN ssh-ak-config Alice" "$g_auth" > /dev/null &&
-   grep -F -x -e "# BEGIN ssh-ak-config Bob" "$g_auth" > /dev/null &&
+if grep -F -x -e "# BEGIN ssh-sync-ak Alice" "$g_auth" > /dev/null &&
+   grep -F -x -e "# BEGIN ssh-sync-ak Bob" "$g_auth" > /dev/null &&
    grep -F -x -e "$k1" "$g_auth" > /dev/null &&
    grep -F -x -e "$k2" "$g_auth" > /dev/null; then
    fn_pass 'two named blocks'
@@ -105,7 +105,7 @@ if fn_run "$g_keys" Ryan 2> /dev/null; then
    fn_fail 'empty keys should fail'
 else
    if grep -F -x -e "$k3" "$g_auth" > /dev/null &&
-      ! grep -F -e 'BEGIN ssh-ak-config' "$g_auth" > /dev/null; then
+      ! grep -F -e 'BEGIN ssh-sync-ak' "$g_auth" > /dev/null; then
       fn_pass 'empty keys aborts'
    else
       fn_fail 'empty keys aborts (file changed)'
@@ -148,7 +148,7 @@ printf '%s\n' "$k1" > "$g_keys"
 SSH_AK_FILE="$b_other" sh "$g_script" --file="$g_auth" "$g_keys" Ryan
 if grep -F -x -e "$k1" "$g_auth" > /dev/null &&
    grep -F -x -e "$k3" "$b_other" > /dev/null &&
-   ! grep -F -e 'BEGIN ssh-ak-config' "$b_other" > /dev/null; then
+   ! grep -F -e 'BEGIN ssh-sync-ak' "$b_other" > /dev/null; then
    fn_pass '--file overrides SSH_AK_FILE'
 else
    fn_fail '--file overrides SSH_AK_FILE'

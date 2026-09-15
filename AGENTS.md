@@ -1,12 +1,12 @@
-# ssh-ak-config
+# ssh-sync-ak
 
 POSIX `sh` only. Load the `shell-scripting` skill.
 
 ## Pre-commit
 
 ```
-shfmt -i 3 -sr -ci -s -w ssh-ak-config.sh test.sh test-live.sh
-shellcheck ssh-ak-config.sh test.sh test-live.sh
+shfmt -i 3 -sr -ci -s -w ssh-sync-ak.sh test.sh test-live.sh
+shellcheck ssh-sync-ak.sh test.sh test-live.sh
 sh test.sh
 ```
 
