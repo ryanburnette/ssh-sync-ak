@@ -1,5 +1,7 @@
 #!/bin/sh
 set -eu
+LC_ALL=C
+export LC_ALL
 
 # Exercise ssh-sync-ak.sh against https://github.com/ryanburnette.keys
 # using copies of testdata files under tmp/.

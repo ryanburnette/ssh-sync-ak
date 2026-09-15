@@ -1,9 +1,12 @@
 #!/bin/sh
 set -eu
+LC_ALL=C
+export LC_ALL
 
 g_root=$(CDPATH='' cd -- "$(dirname "$0")" && pwd)
 g_script="${g_root}/ssh-sync-ak.sh"
-g_work=$(mktemp -d)
+g_work="${TMPDIR:-/tmp}/ssh-sync-ak-test.$$"
+mkdir "$g_work"
 trap 'rm -rf "$g_work"' EXIT
 
 g_failed=0

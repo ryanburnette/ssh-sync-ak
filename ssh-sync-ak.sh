@@ -1,5 +1,7 @@
 #!/bin/sh
 set -eu
+LC_ALL=C
+export LC_ALL
 
 # Sync public keys from a URL (or file) into a named block in authorized_keys.
 # Matching keys already in the file are moved into that block.
@@ -35,7 +37,7 @@ fn_http_get() {
    if command -v curl > /dev/null 2>&1; then
       curl -fsSL "$a_url"
    elif command -v wget > /dev/null 2>&1; then
-      wget -qO- "$a_url"
+      wget -q -O - "$a_url"
    else
       printf 'ssh-sync-ak: need curl or wget to fetch %s\n' "$a_url" >&2
       exit 1
@@ -206,7 +208,7 @@ fn_parse_args() {
 
 fn_show_diff() {
    if test -f "$g_auth_file"; then
-      diff -u "$g_auth_file" "$g_tmp_auth" || true
+      diff -c "$g_auth_file" "$g_tmp_auth" || true
    else
       cat "$g_tmp_auth"
    fi
