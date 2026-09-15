@@ -2,8 +2,8 @@
 
 Sync public keys from a URL into a named block in `authorized_keys`.
 
-```
-curl -fsSL https://raw.githubusercontent.com/ryanburnette/ssh-sync-ak/main/ssh-sync-ak.sh | sh -s -- https://github.com/user.keys Name
+```sh
+curl -fsSL https://raw.githubusercontent.com/ryanburnette/ssh-sync-ak/main/ssh-sync-ak.sh | sh -s -- https://github.com/ryanburnette.keys ryanburnette
 ```
 
 `sh -s --` is required. Arguments after `--` become the script's arguments. Without `-s`, the pipe has no arguments.
