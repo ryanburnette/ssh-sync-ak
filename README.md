@@ -30,10 +30,10 @@ If the URL has no valid keys, the script exits without changing the file.
 ssh-sync-ak.sh [-n] [-f file] <keys-url> [name]
 ```
 
-| Option | Meaning |
-| --- | --- |
+| Option              | Meaning                                                                                             |
+| ------------------- | --------------------------------------------------------------------------------------------------- |
 | `-f`, `--file PATH` | `authorized_keys` file. Default `~/.ssh/authorized_keys`. `SSH_AK_FILE` is used if `-f` is omitted. |
-| `-n`, `--dry-run` | Print the change. Do not write. |
+| `-n`, `--dry-run`   | Print the change. Do not write.                                                                     |
 
 `keys-url` may be `http://`, `https://`, or a local file. Name may only contain `A-Za-z0-9._-`.
 
