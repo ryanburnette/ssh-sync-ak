@@ -24,6 +24,27 @@ fn_run() {
    sh "$g_script" -f "$g_auth" "$@"
 }
 
+g_updated_re='# updated [0-9]{4}-[0-9]{2}-[0-9]{2}T[0-9]{2}:[0-9]{2}:[0-9]{2}Z'
+
+fn_has_updated() {
+   grep -E -x -e "$g_updated_re" "$g_auth" > /dev/null
+}
+
+fn_line_after_begin() {
+   awk -v n="$1" '
+      $0 == "# BEGIN ssh-sync-ak " n { getline; print; exit }
+   ' "$g_auth"
+}
+
+fn_in_time_window() {
+   a_t0=$1
+   a_ts=$2
+   a_t1=$3
+   b_lo=$(printf '%s\n%s\n' "$a_t0" "$a_ts" | sort | sed -n '1p')
+   b_hi=$(printf '%s\n%s\n' "$a_ts" "$a_t1" | sort | sed -n '$p')
+   test "$b_lo" = "$a_t0" && test "$b_hi" = "$a_t1"
+}
+
 g_auth="${g_work}/authorized_keys"
 g_keys="${g_work}/keys"
 
@@ -36,6 +57,7 @@ k1_opt='from="10.0.0.1" ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIFakeKey111111111111
 printf '%s\n' "$k1" "$k2" > "$g_keys"
 fn_run "$g_keys" Ryan
 if grep -F -x -e "# BEGIN ssh-sync-ak Ryan" "$g_auth" > /dev/null &&
+   fn_has_updated &&
    grep -F -x -e "$k1" "$g_auth" > /dev/null &&
    grep -F -x -e "$k2" "$g_auth" > /dev/null &&
    grep -F -x -e "# END ssh-sync-ak Ryan" "$g_auth" > /dev/null; then
@@ -44,14 +66,50 @@ else
    fn_fail 'creates named block'
 fi
 
-# Idempotent.
-b_before=$(cat "$g_auth")
+# Re-run keeps one copy of each key and an updated timestamp line.
 fn_run "$g_keys" Ryan
-b_after=$(cat "$g_auth")
-if test "$b_before" = "$b_after"; then
-   fn_pass 'idempotent'
+b_k1_count=$(grep -c -F -x -e "$k1" "$g_auth" || true)
+b_k2_count=$(grep -c -F -x -e "$k2" "$g_auth" || true)
+b_begin_count=$(grep -c -F -x -e "# BEGIN ssh-sync-ak Ryan" "$g_auth" || true)
+if test "$b_k1_count" -eq 1 &&
+   test "$b_k2_count" -eq 1 &&
+   test "$b_begin_count" -eq 1 &&
+   fn_has_updated; then
+   fn_pass 're-run keeps keys'
 else
-   fn_fail 'idempotent'
+   fn_fail 're-run keeps keys'
+fi
+
+# Updated line: under BEGIN, UTC now, one per block.
+printf '%s\n' "$k1" > "$g_keys"
+printf '%s\n' "$k3" > "$g_auth"
+b_t0=$(date -u +%Y-%m-%dT%H:%M:%SZ)
+fn_run "$g_keys" Ryan
+b_t1=$(date -u +%Y-%m-%dT%H:%M:%SZ)
+b_stamp=$(fn_line_after_begin Ryan)
+b_ts=${b_stamp#\# updated }
+b_updated_count=$(grep -c -E -x -e "$g_updated_re" "$g_auth" || true)
+if printf '%s\n' "$b_stamp" | grep -E -x -e "$g_updated_re" > /dev/null &&
+   test "$b_updated_count" -eq 1 &&
+   fn_in_time_window "$b_t0" "$b_ts" "$b_t1" &&
+   grep -F -x -e "$k3" "$g_auth" > /dev/null; then
+   fn_pass 'writes updated timestamp'
+else
+   fn_fail 'writes updated timestamp'
+   printf '%s\n' "stamp=$b_stamp t0=$b_t0 t1=$b_t1" >&2
+   cat "$g_auth" >&2
+fi
+
+# Re-run replaces the timestamp line instead of stacking another.
+fn_run "$g_keys" Ryan
+b_updated_count=$(grep -c -E -x -e "$g_updated_re" "$g_auth" || true)
+b_stamp=$(fn_line_after_begin Ryan)
+if test "$b_updated_count" -eq 1 &&
+   printf '%s\n' "$b_stamp" | grep -E -x -e "$g_updated_re" > /dev/null; then
+   fn_pass 're-run replaces timestamp'
+else
+   fn_fail 're-run replaces timestamp'
+   cat "$g_auth" >&2
 fi
 
 # Preserve unmanaged keys and rotate the block.
@@ -92,8 +150,12 @@ printf '%s\n' "$k1" > "$g_keys"
 fn_run "$g_keys" Alice
 printf '%s\n' "$k2" > "$g_keys"
 fn_run "$g_keys" Bob
+b_alice=$(fn_line_after_begin Alice)
+b_bob=$(fn_line_after_begin Bob)
 if grep -F -x -e "# BEGIN ssh-sync-ak Alice" "$g_auth" > /dev/null &&
    grep -F -x -e "# BEGIN ssh-sync-ak Bob" "$g_auth" > /dev/null &&
+   printf '%s\n' "$b_alice" | grep -E -x -e "$g_updated_re" > /dev/null &&
+   printf '%s\n' "$b_bob" | grep -E -x -e "$g_updated_re" > /dev/null &&
    grep -F -x -e "$k1" "$g_auth" > /dev/null &&
    grep -F -x -e "$k2" "$g_auth" > /dev/null; then
    fn_pass 'two named blocks'
@@ -137,6 +199,7 @@ b_out=$(fn_run -n "$g_keys" Ryan 2>&1) || true
 b_after=$(cat "$g_auth")
 if test "$b_before" = "$b_after" &&
    printf '%s\n' "$b_out" | grep -F -e 'dry run' > /dev/null &&
+   printf '%s\n' "$b_out" | grep -E -e "$g_updated_re" > /dev/null &&
    printf '%s\n' "$b_out" | grep -F -e "$k1" > /dev/null; then
    fn_pass 'dry run does not write'
 else

@@ -3,15 +3,13 @@
 Sync public keys from a URL into a named block in `authorized_keys`.
 
 ```sh
-curl -fsSL https://raw.githubusercontent.com/ryanburnette/ssh-sync-ak/main/ssh-sync-ak.sh | sh -s -- https://github.com/ryanburnette.keys ryanburnette
+curl -fsSL https://raw.githubusercontent.com/ryanburnette/ssh-sync-ak/main/ssh-sync-ak.sh | sh -s -- https://ryanburnette.com/keys ryanburnette
 ```
-
-`sh -s --` is required. Arguments after `--` become the script's arguments. Without `-s`, the pipe has no arguments.
 
 ## What it does
 
 1. Fetches keys from the URL (GitHub's `https://github.com/<user>.keys` works).
-2. Writes them into a managed block named by the last argument (default `default`).
+2. Writes them into a managed block named by the last argument (default `default`). The block includes a UTC `# updated` line for the last write.
 3. If any of those keys already appear elsewhere in `authorized_keys`, moves them into the block (the old line is removed, including options).
 4. Leaves every other line alone.
 
@@ -19,6 +17,7 @@ Re-running with the same name replaces that block so key rotation works. Other b
 
 ```
 # BEGIN ssh-sync-ak ryanburnette
+# updated 2026-04-08T14:30:00Z
 ssh-ed25519 AAAA...
 # END ssh-sync-ak ryanburnette
 ```

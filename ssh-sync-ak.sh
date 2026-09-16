@@ -8,6 +8,7 @@ export LC_ALL
 
 g_begin=
 g_end=
+g_updated=
 g_key_body=
 g_key_ids=
 g_auth_file=
@@ -87,6 +88,7 @@ fn_line_is_owned() {
 
 fn_print_block() {
    printf '%s\n' "$g_begin"
+   printf '%s\n' "$g_updated"
    printf '%s\n' "$g_key_body"
    printf '%s\n' "$g_end"
 }
@@ -240,6 +242,7 @@ fn_main() {
 
    fn_fetch_keys "$g_keys_src" > "$g_tmp_keys"
    fn_collect_keys
+   g_updated="# updated $(date -u +%Y-%m-%dT%H:%M:%SZ)"
    fn_rewrite > "$g_tmp_auth"
 
    if test -f "$g_auth_file" && cmp -s "$g_auth_file" "$g_tmp_auth"; then
