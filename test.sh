@@ -207,6 +207,90 @@ else
    printf '%s\n' "$b_out" >&2
 fi
 
+# Dry run preview works with a BusyBox-style diff, which has no -c.
+b_bb_diff="${g_work}/diff"
+cat > "$b_bb_diff" << 'EOF'
+#!/bin/sh
+# BusyBox-like diff: unified output only, unknown options are an error.
+set -eu
+while test $# -gt 0; do
+   case $1 in
+      -u)
+         shift
+         ;;
+      -U)
+         if test $# -lt 2; then
+            printf 'diff: option requires an argument -- U\n' >&2
+            exit 1
+         fi
+         shift 2
+         ;;
+      -[abBdiNqrTstw])
+         shift
+         ;;
+      -*)
+         printf 'diff: unrecognized option: %s\n' "${1#-}" >&2
+         exit 1
+         ;;
+      *)
+         break
+         ;;
+   esac
+done
+if test $# -ne 2; then
+   printf 'Usage: diff [-abBdiNqrTstw] [-L LABEL] [-S FILE] [-U LINES] FILE1 FILE2\n' >&2
+   exit 2
+fi
+awk -v fa="$1" -v fb="$2" '
+   NR == FNR {
+      a[++n] = $0
+      in_a[$0] = 1
+      next
+   }
+   b[++m] = $0
+   in_b[$0] = 1
+   END {
+      b_same = 1
+      for (i = 1; i <= n; i++) {
+         if (!(a[i] in in_b)) {
+            b_same = 0
+            break
+         }
+      }
+      if (b_same) {
+         for (i = 1; i <= m; i++) {
+            if (!(b[i] in in_a)) {
+               b_same = 0
+               break
+            }
+         }
+      }
+      if (b_same) exit 0
+      printf("--- %s\n+++ %s\n@@\n", fa, fb)
+      for (i = 1; i <= n; i++) {
+         if (!(a[i] in in_b)) printf("-%s\n", a[i])
+      }
+      for (i = 1; i <= m; i++) {
+         if (!(b[i] in in_a)) printf("+%s\n", b[i])
+      }
+      exit 1
+   }
+' "$1" "$2"
+EOF
+chmod +x "$b_bb_diff"
+printf '%s\n' "$k3" > "$g_auth"
+printf '%s\n' "$k1" > "$g_keys"
+b_out=$(PATH="$g_work:$PATH" sh "$g_script" -f "$g_auth" -n "$g_keys" Ryan 2>&1) || true
+if printf '%s\n' "$b_out" | grep -F -e "$k1" > /dev/null &&
+   printf '%s\n' "$b_out" | grep -F -e '--- ' > /dev/null &&
+   ! printf '%s\n' "$b_out" | grep -F -e 'unrecognized option' > /dev/null &&
+   test "$(cat "$g_auth")" = "$k3"; then
+   fn_pass 'dry run diff is busybox-safe'
+else
+   fn_fail 'dry run diff is busybox-safe'
+   printf '%s\n' "$b_out" >&2
+fi
+
 # --file= form writes the given path, not SSH_AK_FILE.
 b_other="${g_work}/other_keys"
 printf '%s\n' "$k3" > "$b_other"
