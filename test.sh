@@ -212,6 +212,8 @@ b_bb_diff="${g_work}/diff"
 cat > "$b_bb_diff" << 'EOF'
 #!/bin/sh
 # BusyBox-like diff: unified output only, unknown options are an error.
+# Compares line sets, not a real diff. Enough to prove the script never
+# asks for an option BusyBox does not have.
 set -eu
 while test $# -gt 0; do
    case $1 in
@@ -247,8 +249,10 @@ awk -v fa="$1" -v fb="$2" '
       in_a[$0] = 1
       next
    }
-   b[++m] = $0
-   in_b[$0] = 1
+   {
+      b[++m] = $0
+      in_b[$0] = 1
+   }
    END {
       b_same = 1
       for (i = 1; i <= n; i++) {
@@ -283,6 +287,8 @@ printf '%s\n' "$k1" > "$g_keys"
 b_out=$(PATH="$g_work:$PATH" sh "$g_script" -f "$g_auth" -n "$g_keys" Ryan 2>&1) || true
 if printf '%s\n' "$b_out" | grep -F -e "$k1" > /dev/null &&
    printf '%s\n' "$b_out" | grep -F -e '--- ' > /dev/null &&
+   # The shim prints a bare @@. A real diff prints "@@ -1 +1,5 @@".
+   printf '%s\n' "$b_out" | grep -E -x -e '@@$' > /dev/null &&
    ! printf '%s\n' "$b_out" | grep -F -e 'unrecognized option' > /dev/null &&
    test "$(cat "$g_auth")" = "$k3"; then
    fn_pass 'dry run diff is busybox-safe'
