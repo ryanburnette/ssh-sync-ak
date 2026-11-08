@@ -210,7 +210,8 @@ fn_parse_args() {
 
 fn_show_diff() {
    if test -f "$g_auth_file"; then
-      diff -c "$g_auth_file" "$g_tmp_auth" || true
+      # -u (unified) works on GNU, BSD, and BusyBox diff. BusyBox has no -c.
+      diff -u "$g_auth_file" "$g_tmp_auth" || true
    else
       cat "$g_tmp_auth"
    fi
